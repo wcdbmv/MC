@@ -1,6 +1,7 @@
 function lab01
 	% Режим работы
 	debug = true;
+	maximize = false;
 
 	debug_disp = @(varargin) debug_generic(debug, @disp, varargin{:});
 	debug_fprintf = @(varargin) debug_generic(debug, @fprintf, varargin{:});
@@ -19,8 +20,8 @@ function lab01
 	%     3 1 0 5];
 
 
-	debug_disp('Матрица стоимостей:');
-	debug_disp(C);
+	disp('Матрица стоимостей:');
+	disp(C);
 
 	% Проверка квадратности матрицы стоимостей
 	[height, width] = size(C);
@@ -36,12 +37,23 @@ function lab01
 		return;
 	end
 
+	Ct = C;
+
+	if maximize
+		debug_disp('0. Сведём задачу максимизации к минимизации:');
+		debug_disp('умножим элементы матрицы на -1 и прибавим максимальный по модулю элемент:')
+
+		Ct = -Ct + max(Ct);
+
+		debug_disp(Ct);
+	end
+
 
 	debug_disp('[I] Подготовительный этап');
 	debug_disp('1. Из каждого столбца матрицы вычитаем его наименьший элемент');
 
-	minInColumns = min(C);
-	Ct = C - minInColumns;
+	minInColumns = min(Ct);
+	Ct = Ct - minInColumns;
 
 	debug_disp('Наименьшие элементы в столбцах матрицы стоимостей:');
 	debug_disp(minInColumns);
@@ -97,16 +109,8 @@ function lab01
 			runInnerWhile = false;
 			runOuterWhile = false;
 			h = Inf;
-			for col = 1:n
-				if colsBusy(col)
-					continue;
-				end
-
-				for row = 1:n
-					if rowsBusy(row)
-						continue;
-					end
-
+			for col = setdiff(1:n, find(colsBusy)) % col = 1:n except indices in colsBusy
+				for row = setdiff(1:n, find(rowsBusy)) % row = 1:n except indices in rowsBusy
 					if Ct(row, col) == 0
 						debug_disp("6. Среди невыделенных есть 0, отмечаем его 0':");
 
@@ -128,21 +132,11 @@ function lab01
 							break;
 						end
 
+
 						debug_disp("8. В одной строке с текущим 0' нет 0*, поэтому");
 						debug_disp("строим непродолжаемую L-цепочку: от текущего 0' по столбцу в 0* по строке ... по строке в 0'");
 
-						trow = row;
-						tcol = col;
-						Lchain = [trow tcol];
-						Lrows = 1;
-						trow = find(stars(:, tcol), 1);
-						while ~isempty(trow)
-							Lchain = [Lchain; trow tcol];
-							tcol = find(strokes(trow, :), 1);
-							Lchain = [Lchain; trow tcol];
-							trow = find(stars(:, tcol), 1);
-							Lrows = Lrows + 2;
-						end
+						Lchain = initLchain(stars, strokes, row, col);
 
 						debug_disp('L-цепочка [row col]:');
 						debug_disp(Lchain);
@@ -150,18 +144,7 @@ function lab01
 
 						debug_disp("9. В пределах L-цепочки меняем 0* на 0, а 0' на 0*");
 
-						for i = 1:2:Lrows
-							x = Lchain(i, 1);
-							y = Lchain(i, 2);
-							strokes(x, y) = false;
-							stars(x, y) = true;
-						end
-
-						for i = 2:2:Lrows-1
-							x = Lchain(i, 1);
-							y = Lchain(i, 2);
-							stars(x, y) = false;
-						end
+						[stars, strokes] = processLchain(stars, strokes, Lchain);
 
 						debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
 
@@ -203,17 +186,19 @@ function lab01
 		end
 
 		k = sum(stars, 'all');
+		debug_fprintf('k = %d\n', k);
+
 		iteration = iteration + 1;
 	end
 
 
-	debug_fprintf('12. k = n = %d, записываем оптимальное решение\n', k);
+	debug_disp('12. k = n, записываем оптимальное решение\n');
 
-	debug_disp('X =');
-	debug_disp(stars);
+	disp('X =');
+	disp(stars);
 
 	f = sum(C .* stars, 'all');
-	debug_fprintf('f = %d\n', f);
+	fprintf('f = %d\n', f);
 end
 
 function stars = initStars(Ct, n)
@@ -233,6 +218,36 @@ end
 function colsBusy = fillColsBusy(colsBusy, stars, n)
 	for col = 1:n
 		colsBusy(col) = ~isempty(find(stars(:, col), 1));
+	end
+end
+
+function Lchain = initLchain(stars, strokes, row_init, col_init)
+	row = row_init;
+	col = col_init;
+	Lchain = [row col];
+	row = find(stars(:, col), 1);
+	while ~isempty(row)
+		Lchain = [Lchain; row col];
+		col = find(strokes(row, :), 1);
+		Lchain = [Lchain; row col];
+		row = find(stars(:, col), 1);
+	end
+end
+
+function [stars, strokes] = processLchain(stars, strokes, Lchain)
+	Lrows = size(Lchain, 1);
+
+	for i = 1:2:Lrows
+		x = Lchain(i, 1);
+		y = Lchain(i, 2);
+		strokes(x, y) = false;
+		stars(x, y) = true;
+	end
+
+	for i = 2:2:Lrows-1
+		x = Lchain(i, 1);
+		y = Lchain(i, 2);
+		stars(x, y) = false;
 	end
 end
 
