@@ -8,10 +8,10 @@ function lab01
 
 	% Матрица стоимостей
 	C = [10  8  6  4  9;
-			11  9 10  5  6;
-			 5 10  8  6  4;
-			 3 11  9  6  6;
-			 8 10 11  8  7];
+	     11  9 10  5  6;
+	      5 10  8  6  4;
+	      3 11  9  6  6;
+	      8 10 11  8  7];
 
 	debug_disp('Матрица стоимостей:');
 	debug_disp(C);
@@ -59,45 +59,48 @@ function lab01
 	debug_disp('Первый в строке нуль, в одной строке с которым нет 0*, отмечаем 0*.');
 
 	stars = zeros(n);
-	colsBusy = zeros([1 n]); % Занятые столбцы
 	rowsBusy = zeros([n 1]); % Занятые строки
 	for col = 1:n
 		for row = 1:n
 			if Ct(row, col) == 0 && ~rowsBusy(row)
 				stars(row, col) = 1;
 				rowsBusy(row) = 1;
-				colsBusy(col) = 1;
 				break;
 			end
 		end
 	end
 
+	colsBusy = zeros([1 n]);
+	rowsBusy = zeros([n 1]);
+
 	debug_disp('Эквивалентная матрица стоимостей:');
-	debug_disp_matrix(Ct, stars, zeros(n), zeros([1 n]), zeros([n 1]));
+	debug_disp_matrix(Ct, stars, zeros(n), colsBusy, rowsBusy);
 
 
 	debug_disp('4. k := |СНН|');
 
-	k = sum(rowsBusy);
+	k = sum(stars, 'all');
 
 	debug_fprintf('k = %d\n\n', k);
 
 
 	debug_disp('[II] Основной этап венгерского метода');
 
-	rowsBusy = zeros([n 1]);
 	strokes = zeros(n);
 	iteration = 1;
 	while k ~= n
 		debug_fprintf('-- Итерация %d\n', iteration);
 
 		debug_disp('5. Столбцы с 0* отмечаем "+"');
-		debug_disp_matrix(Ct, stars, zeros(n), colsBusy, zeros([n 1]));
-		% TODO: maybe update colsBusy ?
+		for i = 1:n
+			colsBusy(i) = ~isempty(find(stars(:, i), 1));
+		end
+		debug_disp_matrix(Ct, stars, zeros(n), colsBusy, rowsBusy);
 
-		isThereFreeZeros = true;
-		while isThereFreeZeros
-			isBreak = false;
+		runInnerWhile = true;
+		while runInnerWhile
+			runInnerWhile = false;
+			runOuterWhile = false;
 			for col = 1:n
 				if colsBusy(col)
 					continue;
@@ -122,27 +125,77 @@ function lab01
 							rowsBusy(row) = 1;
 
 							debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
-							isBreak = true;
+							runInnerWhile = true;
 							break;
 						end
 
 						debug_disp("8. В одной строке с текущим 0' нет 0*, поэтому");
 						debug_disp("строим непродолжаемую L-цепочку: от текущего 0' по столбцу в 0* по строке ... по строке в 0'");
 
-						% TODO
+						trow = row;
+						tcol = col;
+						Lchain = [trow tcol];
+						Lrows = 1;
+						trow = find(stars(:, tcol), 1);
+						while ~isempty(trow)
+							Lchain = [Lchain; trow tcol];
+							tcol = find(strokes(trow, :), 1);
+							LChain = [Lchain; trow tcol];
+							trow = find(stars(:, tcol), 1);
+							Lrows = Lrows + 2;
+						end
+
+						debug_disp('L-цепочка [row col]:');
+						debug_disp(LChain);
+
+
+						debug_disp("9. В пределах L-цепочки меняем 0* на 0, а 0' на 0*");
+
+						for i = 1:2:Lrows
+							x = LChain(i, 1);
+							y = LChain(i, 2);
+							strokes(x, y) = 0;
+							stars(x, y) = 1;
+						end
+
+						for i = 2:2:Lrows-1
+							x = LChain(i, 1);
+							y = LChain(i, 2);
+							stars(x, y) = 0;
+						end
+
+						debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
+
+
+						debug_disp("10. Снимаем все выделения, k := |СНН|");
+
+						colsBusy = zeros([1 n]);
+						rowsBusy = zeros([n 1]);
+
+						debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
+						runOuterWhile = true;
+						break;
 					end
 				end
 
-				if isBreak
+				if runInnerWhile || runOuterWhile
 					break;
 				end
 			end
-
-			isThereFreeZeros = isBreak
 		end
-		k = n
-		% Pluses =
+
+		k = sum(stars, 'all');
+		iteration = iteration + 1;
 	end
+
+
+	debug_fprintf('11. k = n = %d, записываем оптимальное решение\n', k);
+
+	debug_disp('X =');
+	debug_disp(stars);
+
+	f = sum(C .* stars, 'all');
+	debug_fprintf('f = %d\n', f);
 end
 
 function debug_generic(debug, func, varargin)
