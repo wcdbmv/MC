@@ -7,17 +7,15 @@ function lab01
 	debug_fprintf = @(varargin) debug_generic(debug, @fprintf, varargin{:});
 	debug_disp_matrix = @(varargin) debug_generic(debug, @disp_matrix, varargin{:});
 
+	modes = ["Минимизация", "Максимизация"];
+	fprintf('[%s стоимости]\n', modes(1 + maximize));
+
 	% Матрица стоимостей
 	C = [10   8   6   4   9;
 	     11   9  10   5   6;
 	      5  10   8   6   4;
 	      3  11   9   6   6;
 	      8  10  11   8   7];
-
-	%C = [0 0 1 4;
-	%     1 2 0 1;
-	%     2 2 5 0;
-	%     3 1 0 5];
 
 
 	disp('Матрица стоимостей:');
@@ -194,11 +192,11 @@ function lab01
 
 	debug_disp('12. k = n, записываем оптимальное решение\n');
 
-	disp('X =');
+	disp('Оптимальное решение: X* =');
 	disp(stars);
 
 	f = sum(C .* stars, 'all');
-	fprintf('f = %d\n', f);
+	fprintf('f* = %d\n', f);
 end
 
 function stars = initStars(Ct, n)

@@ -425,7 +425,7 @@
 \algrenewcommand\algorithmicuntil{\textbf{Пока выполняется}}
 \algrenewcommand\algorithmicend{\textbf{Конец}}
 \algrenewcommand\algorithmicif{\textbf{Если}}
-\algrenewcommand\algorithmicelse{\textbf{иначе}}
+\algrenewcommand\algorithmicelse{\textbf{Иначе}}
 \algrenewcommand\algorithmicthen{\textbf{тогда}}
 \algrenewcommand\algorithmicfor{\textbf{Цикл}}
 \algrenewcommand\algorithmicforall{\textbf{Для всех}}
@@ -435,6 +435,8 @@
 \algrenewcommand\algorithmicrequire{\textbf{Условия:}}
 \algrenewcommand\algorithmicensure{\textbf{Обеспечивающие условия:}}
 \algrenewcommand\algorithmicreturn{\textbf{Возвратить}}
+\algnewcommand{\algorithmicgoto}{\textbf{Перейти к}}
+\algnewcommand{\Goto}[1]{\algorithmicgoto~\ref{#1} шагу алгоритма}
 \algrenewtext{EndWhile}{\textbf{Конец цикла}}
 \algrenewtext{EndLoop}{\textbf{Конец зацикливания}}
 \algrenewtext{EndFor}{\textbf{Конец цикла}}
@@ -448,22 +450,26 @@
 \algrenewtext{EndBlock}{\textbf{Конец блока}}
 \algrenewtext{ElsIf}{\textbf{иначе если }}
 %%
+\usepackage{matlab-prettifier}
 \usepackage{listings}
 \usepackage{listingsutf8}
 \usepackage{xcolor}
+\let\ph\mlplaceholder % shorter macro
+\lstMakeShortInline"
+
 \lstset{
-	basicstyle=\ttfamily,
-	breakatwhitespace=true,
-	breaklines=true,
-	commentstyle=\color{gray},
+	style              = Matlab-editor,
+	basicstyle         = \scriptsize\ttfamily,
+	breakatwhitespace  = true,
+	breaklines         = true,
+	escapechar         = ",
 	frame=single,
 	inputencoding=utf8/koi8-r,
-	keywordstyle=\color{blue}\bfseries,
-	showstringspaces=false,
-	stringstyle=\color{red},
-	tabsize=8,
-	xleftmargin=3pt,
-	xrightmargin=3pt,
+	mlshowsectionrules = true,
+	numbers            = left,
+	numbersep          = 5pt,
+	numberstyle        = \tiny\ttfamily\color{gray},
+	tabsize            = 2,
 }
 %%
 \newcommand{\code}[1]{\texttt{#1}}
