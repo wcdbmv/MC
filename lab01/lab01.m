@@ -1,7 +1,7 @@
 function lab01
 	% Режим работы
 	debug = true;
-	maximize = false;
+	maximize = true;
 
 	debug_disp = @(varargin) debug_generic(debug, @disp, varargin{:});
 	debug_fprintf = @(varargin) debug_generic(debug, @fprintf, varargin{:});
@@ -39,39 +39,40 @@ function lab01
 
 	if maximize
 		debug_disp('0. Сведём задачу максимизации к минимизации:');
-		debug_disp('умножим элементы матрицы на -1 и прибавим максимальный по модулю элемент:')
+		debug_disp('умножим элементы матрицы на -1 и прибавим максимальный по модулю элемент.')
 
-		Ct = -Ct + max(Ct);
+		Ct = -Ct + max(Ct, [], 'all');
 
+		debug_disp('Č =');
 		debug_disp(Ct);
 	end
 
 
 	debug_disp('[I] Подготовительный этап');
-	debug_disp('1. Из каждого столбца матрицы вычитаем его наименьший элемент');
+	debug_disp('1. Из каждого столбца матрицы вычтем его наименьший элемент');
 
 	minInColumns = min(Ct);
 	Ct = Ct - minInColumns;
 
 	debug_disp('Наименьшие элементы в столбцах матрицы стоимостей:');
 	debug_disp(minInColumns);
-	debug_disp('Эквивалентная матрица стоимостей:');
+	debug_disp('Č =');
 	debug_disp(Ct);
 
 
-	debug_disp('2. Из каждой строки матрицы вычитаем её наименьший элемент');
+	debug_disp('2. Из каждой строки матрицы вычтем её наименьший элемент');
 
 	minInRows = min(Ct, [], 2);
 	Ct = Ct - minInRows;
 
 	debug_disp('Наименьшие элементы в строках матрицы стоимостей:');
 	debug_disp(minInRows);
-	debug_disp('Эквивалентная матрица стоимостей:');
+	debug_disp('Č =');
 	debug_disp(Ct);
 
 
 	debug_disp('3. Строим начальную СНН:');
-	debug_disp('просматриваем столбцы теушей матрицы стоимостей (в порядке возрастания номера столбца) сверху вниз.');
+	debug_disp('Просмотрим столбцы текущей матрицы стоимостей (в порядке возрастания номера столбца) сверху вниз.');
 	debug_disp('Первый в строке нуль, в одной строке с которым нет 0*, отмечаем 0*.');
 
 	stars = initStars(Ct, n);
@@ -79,7 +80,7 @@ function lab01
 	colsBusy = false([1 n]);
 	rowsBusy = false([n 1]);
 
-	debug_disp('Эквивалентная матрица стоимостей:');
+	debug_disp('Č =');
 	debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
 
 
@@ -90,7 +91,7 @@ function lab01
 	debug_fprintf('k = %d\n\n', k);
 
 
-	debug_disp('[II] Основной этап венгерского метода');
+	debug_disp('[II] Основной этап');
 
 	iteration = 1;
 	while k ~= n
@@ -98,7 +99,9 @@ function lab01
 		debug_disp('5. Столбцы с 0* отмечаем "+"');
 
 		colsBusy = fillColsBusy(colsBusy, stars, n);
+		rowsBusy(:) = false;
 
+		debug_disp('Č =');
 		debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
 
 
@@ -114,6 +117,7 @@ function lab01
 
 						strokes(row, col) = true;
 
+						debug_disp('Č =');
 						debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
 
 
@@ -125,7 +129,9 @@ function lab01
 							colsBusy(idx) = false;
 							rowsBusy(row) = true;
 
+							debug_disp('Č =');
 							debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
+
 							runInnerWhile = true;
 							break;
 						end
@@ -144,6 +150,7 @@ function lab01
 
 						[stars, strokes] = processLchain(stars, strokes, Lchain);
 
+						debug_disp('Č =');
 						debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
 
 
@@ -152,7 +159,12 @@ function lab01
 						colsBusy(:) = false;
 						rowsBusy(:) = false;
 
+						debug_disp('Č =');
 						debug_disp_matrix(Ct, stars, strokes, colsBusy, rowsBusy);
+
+						k = sum(stars, 'all');
+						debug_fprintf('k = %d\n', k);
+
 						runOuterWhile = true;
 						break;
 					elseif Ct(row, col) < h
@@ -167,30 +179,26 @@ function lab01
 
 			if ~runInnerWhile && ~runOuterWhile
 				debug_disp('11. Среди невыделенных элементов нет 0, поэтому');
-				debug_disp('ищем h — минимальный элемент среди невыделенных.');
+				debug_disp('найдём h — минимальный элемент среди невыделенных.');
 				debug_fprintf('h = %d\n', h);
 
-				debug_disp('Вычитаем h из невыделенных столбцов,');
-
+				debug_disp('Вычтем h из невыделенных столбцов.');
 				Ct(:, ~colsBusy) = Ct(:, ~colsBusy) - h;
-
+				debug_disp('Č =');
 				debug_disp(Ct);
-				debug_disp('добавляем h к выделенным строкам');
 
+				debug_disp('Добавим h к выделенным строкам.');
 				Ct(rowsBusy, :) = Ct(rowsBusy, :) + h;
-
+				debug_disp('Č =');
 				debug_disp(Ct);
 			end
 		end
-
-		k = sum(stars, 'all');
-		debug_fprintf('k = %d\n', k);
 
 		iteration = iteration + 1;
 	end
 
 
-	debug_disp('12. k = n, записываем оптимальное решение\n');
+	debug_disp('12. k = n, запишем оптимальное решение');
 
 	disp('Оптимальное решение: X* =');
 	disp(stars);
