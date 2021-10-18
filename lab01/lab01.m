@@ -1,7 +1,7 @@
 function lab01
 	% Режим работы
 	debug = true;
-	maximize = true;
+	maximize = false;
 
 	debug_disp = @(varargin) debug_generic(debug, @disp, varargin{:});
 	debug_fprintf = @(varargin) debug_generic(debug, @fprintf, varargin{:});
@@ -16,7 +16,6 @@ function lab01
 	      5  10   8   6   4;
 	      3  11   9   6   6;
 	      8  10  11   8   7];
-
 
 	disp('Матрица стоимостей:');
 	disp(C);
@@ -39,7 +38,7 @@ function lab01
 
 	if maximize
 		debug_disp('0. Сведём задачу максимизации к минимизации:');
-		debug_disp('умножим элементы матрицы на -1 и прибавим максимальный по модулю элемент.')
+		debug_disp('умножим элементы матрицы на -1 и прибавим максимальный по модулю элемент.');
 
 		Ct = -Ct + max(Ct, [], 'all');
 
@@ -93,9 +92,14 @@ function lab01
 
 	debug_disp('[II] Основной этап');
 
+	found_h = false;
 	iteration = 1;
 	while k ~= n
-		debug_fprintf('-- Итерация %d\n', iteration);
+		if ~found_h
+			debug_fprintf('-- Итерация %d\n', iteration);
+		end
+		found_h = false;
+
 		debug_disp('5. Столбцы с 0* отмечаем "+"');
 
 		colsBusy = fillColsBusy(colsBusy, stars, n);
@@ -191,6 +195,9 @@ function lab01
 				Ct(rowsBusy, :) = Ct(rowsBusy, :) + h;
 				debug_disp('Č =');
 				debug_disp(Ct);
+
+				found_h = true;
+				iteration = iteration - 1;
 			end
 		end
 
