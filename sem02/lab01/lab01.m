@@ -3,18 +3,17 @@ function lab01
 
     a = 0;
     b = 1;
-    eps = 10e-2;
+    eps = 1e-2;
 
-    TOL = 2e-2;
-    if (abs(b - a) < 1)
-        TOL = abs(b - a) * abs(b - a);
-    end
-
-    fplot(@(x) func(x), [a, b], TOL, 'b');
+    fplot(@(x) func(x), [a, b], 'b');
     hold on;
 
+    global N;
+    N = 0;
+
     [x, f] = radixSearch(a, b, eps, debug);
-    fprintf('Минимум функции: (x=%7.5f, f=%7.5f)\n', x, f);
+    fprintf('Минимум функции: (x=%10.8f, f=%10.8f)\n', x, f);
+    fprintf('N = %d\n', N);
 
     p = plot(x, f, 'rx', 'MarkerSize', 15);
     legend((p), 'Метод поразрядного поиска', 'Location', 'northwest');
@@ -23,6 +22,9 @@ function lab01
 end
 
 function y = func(x)
+    global N;
+    N = N + 1;
+
     x3 = power(x, 3);
     x2 = power(x, 2);
     sqrt2 = sqrt(2);
@@ -42,7 +44,7 @@ function [x, f] = radixSearch(a, b, eps, debug)
     run = true;
     while (run)
         if (debug)
-            fprintf('Итерация %d: (x=%7.5f, f=%7.5f)\n', iteration, x0, f0);
+            fprintf('Итерация %d: (x=%10.8f, f=%10.8f)\n', iteration, x0, f0);
             iteration = iteration + 1;
             plot(x0, f0, 'k.', 'MarkerSize', 15);
         end
