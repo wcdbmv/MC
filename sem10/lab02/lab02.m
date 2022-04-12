@@ -47,8 +47,8 @@ function [x, f] = goldenSectionSearch(a, b, eps, debug)
     iteration = 1;
     while (delta > 2 * eps)
         if (debug)
-            iteration = iteration + 1;
             fprintf('Итерация %d: [a=%10.8f, b=%10.8f], (xl=%10.8f, xr=%10.8f)\n', iteration, a, b, xl, xr);
+            iteration = iteration + 1;
         end
 
         if (fl > fr)
