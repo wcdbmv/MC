@@ -106,7 +106,7 @@ function [x, f] = successiveParabolicInterpolation(a, b, eps, debug)
     end
 
     if (debug)
-        fprintf('Итерация %d: [x1=%10.8f, x3=%10.8f]\n', iteration, xl, xr);
+        fprintf('Итерация %d: [x1=%12.10f, x3=%12.10f]\n', iteration, xl, xr);
     end
 end
 
