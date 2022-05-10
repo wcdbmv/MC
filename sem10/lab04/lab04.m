@@ -12,21 +12,17 @@ function lab04
     global N;
     N = 0;
 
-    manual = true;
+    manual = false;
+    methods = ["Метод ньютона", "fminbnd"];
     if (manual)
         [x, f] = newton(a, b, eps, debug);
-        fprintf('Минимум функции: (x=%12.10f, f=%12.10f)\n', x, f);
-        fprintf('N = %d\n', N);
-        p = plot(x, f, 'rx', 'MarkerSize', 15);
-        legend(p, 'Метод Ньютона', 'Location', 'northwest');
     else
-        x = fminbnd(@func, a, b, optimset('Display', 'iter', 'TolX', eps));
-        fprintf('N = %d\n', N);
-        f = func(x);
-        fprintf('Минимум функции: (x=%12.10f, f=%12.10f)\n', x, f);
-        p = plot(x, f, 'rx', 'MarkerSize', 15);
-        legend(p, 'Метод Ньютона', 'Location', 'northwest');
+        [x, f] = fminbnd(@func, a, b, optimset('Display', 'iter', 'TolX', eps));
     end
+    fprintf('Минимум функции: (x=%12.10f, f=%12.10f)\n', x, f);
+    fprintf('N = %d\n', N);
+    p = plot(x, f, 'rx', 'MarkerSize', 15);
+    legend(p, methods(1 + ~manual), 'Location', 'northwest');
 
     hold off;
 end
