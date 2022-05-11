@@ -5,6 +5,7 @@ function lab04
     a = 0;
     b = 1;
     eps = 1e-6;
+    dx = 1e-6;
 
     fplot(@(x) func(x), [a, b], 'b');
     hold on;
@@ -12,10 +13,10 @@ function lab04
     global N;
     N = 0;
 
-    manual = false;
+    manual = true;
     methods = ["Метод ньютона", "fminbnd"];
     if (manual)
-        [x, f] = newton(a, b, eps, debug);
+        [x, f] = newton(a, b, eps, dx, debug);
     else
         [x, f] = fminbnd(@func, a, b, optimset('Display', 'iter', 'TolX', eps));
     end
@@ -41,26 +42,18 @@ function y = func(x)
     y = ch + th - 2.5;
 end
 
-function y = func1(x, eps)
-    y = (func(x + eps) - func(x)) / eps;
-end
-
-function y = func2(x, eps)
-    y = (func(x + eps) - 2 * func(x) + func(x - eps)) / (eps .^ 2);
-end
-
-function [x, f] = newton(a, b, eps, debug)
+function [x, f] = newton(a, b, eps, dx, debug)
     [xl, xr] = goldenSectionBoundaries(a, b);
     x = (xl + xr) / 2;
-
-    global N;
 
     run = true;
     iteration = 1;
     while (run)
+        f_plus = func(x + dx);
+        f = func(x);
+        f_minus = func(x - dx);
+
         if (debug)
-            f = func(x);
-            N = N - 1;
             fprintf('Итерация %d: [x=%12.10f, f=%12.10f]\n', iteration, x, f);
             plot(x, f, 'g.', 'MarkerSize', 15);
             iteration = iteration + 1;
@@ -68,25 +61,21 @@ function [x, f] = newton(a, b, eps, debug)
 
         x0 = x;
 
-        f1 = func1(x, eps);
-        f2 = func2(x, eps);
+        f1 = (f_plus - f) / dx;
+        f2 = (f_plus - 2 * f + f_minus) / (dx .^ 2);
         x = x - f1/f2;
 
-        run = abs(x - x0) > eps;
+        run = (abs(x - x0) > eps) || (abs(f1) > eps);
     end
 
     if (debug)
-        f = func(x);
-        N = N - 1;
         fprintf('Итерация %d: [x=%12.10f, f=%12.10f]\n', iteration, x, f);
         plot(x, f, 'g.', 'MarkerSize', 15);
     end
-
-    f = func(x);
 end
 
 function [xl, xr] = goldenSectionBoundaries(a, b)
-    [~, ~, xl, xr] = goldenSectionSearch(a, b, 0.49, false);
+    [~, ~, xl, xr] = goldenSectionSearch(a, b, 0.25, false);
 end
 
 function [x, f, x1, x2] = goldenSectionSearch(a, b, eps, debug)
